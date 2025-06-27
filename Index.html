@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FLAN - Smart DM Automation for Instagram Growth</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style id="app-style">
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #6366F1, #EC4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(90deg, #6366F1, #EC4899);
+    }
+
+    .sidebar {
+      min-height: calc(100vh - 4rem);
+    }
+
+    .auth-container {
+      background-image: url('https://cdn.pixabay.com/photo/2016/11/19/15/32/code-1839877_1280.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .auth-form {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .workspace-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      min-width: 200px;
+      z-index: 50;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background: linear-gradient(90deg, #6366F1, #EC4899);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .rule-card {
+      transition: all 0.3s ease;
+    }
+
+    .rule-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .chart-container {
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Application Container -->
+  <div id="app" class="min-h-screen">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 flex items-center justify-center bg-white z-50">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-500 mx-auto"></div>
+        <p class="mt-4 text-xl font-semibold text-gray-700">Loading FLAN...</p>
+      </div>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="hidden min-h-screen auth-container flex items-center justify-center p-4">
+      <div class="auth-form rounded-xl shadow-xl w-full max-w-md p-8">
+        <div class="text-center mb-8">
+          <h1 class="text-4xl font-bold gradient-text">FLAN</h1>
+          <p class="text-gray-600 mt-2">Smart DM Automation for Instagram Growth</p>
+        </div>
+        
+        <div class="mb-6">
+          <ul class="flex border-b">
+            <li class="mr-1 auth-tab-active">
+              <a href="javascript:void(0)" onclick="showAuthTab('login')" class="auth-tab bg-white inline-block py-2 px-4 text-indigo-600 font-semibold" id="login-tab">Login</a>
+            </li>
+            <li class="mr-1">
+              <a href="javascript:void(0)" onclick="showAuthTab('signup')" class="auth-tab bg-white inline-block py-2 px-4 text-gray-500 hover:text-gray-800 font-semibold" id="signup-tab">Sign Up</a>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Login Form -->
+        <form id="login-form" class="auth-tab-content">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="login-email">
+              Email
+            </label>
+            <input id="login-email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="you@example.com" required>
+          </div>
+          
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="login-password">
+              Password
+            </label>
+            <input id="login-password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="••••••••" required>
+            <a href="javascript:void(0)" class="text-xs text-indigo-600 hover:text-indigo-800 float-right mt-1">Forgot Password?</a>
+          </div>
+          
+          <div class="mb-6">
+            <button type="button" onclick="login()" class="w-full gradient-bg text-white font-semibold py-2 px-4 rounded-md hover:opacity-90 transition-opacity">
+              Login
+            </button>
+          </div>
+        </form>
+        
+        <!-- Signup Form -->
+        <form id="signup-form" class="auth-tab-content hidden">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="signup-name">
+              Full Name
+            </label>
+            <input id="signup-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="John Doe" required>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="signup-email">
+              Email
+            </label>
+            <input id="signup-email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="you@example.com" required>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="signup-password">
+              Password
+            </label>
+            <input id="signup-password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Min. 8 characters" required>
+          </div>
+          
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="signup-confirm">
+              Confirm Password
+            </label>
+            <input id="signup-confirm" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="••••••••" required>
+          </div>
+          
+          <div class="mb-6">
+            <button type="button" onclick="signup()" class="w-full gradient-bg text-white font-semibold py-2 px-4 rounded-md hover:opacity-90 transition-opacity">
+              Create Account
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Workspace Select Screen -->
+    <div id="workspace-screen" class="hidden min-h-screen py-12 px-4 sm:px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+          <h1 class="text-4xl font-bold gradient-text">Welcome to FLAN</h1>
+          <p class="text-gray-600 mt-2">Select a workspace or create a new one</p>
+        </div>
+        
+        <div class="flex justify-end mb-6">
+          <button onclick="showCreateWorkspaceModal()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg flex items-center hover:bg-indigo-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i> New Workspace
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Workspace cards will go here -->
+          <div class="workspace-card bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer" onclick="selectWorkspace('workspace-1')">
+            <div class="p-6">
+              <h3 class="text-xl font-semibold text-gray-800">Personal Instagram</h3>
+              <p class="text-gray-600 mt-2">Created on May 10, 2025</p>
+              <div class="mt-4 flex items-center">
+                <span class="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full">Active</span>
+                <span class="ml-auto text-sm text-gray-500">2 automations</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace-card bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer" onclick="selectWorkspace('workspace-2')">
+            <div class="p-6">
+              <h3 class="text-xl font-semibold text-gray-800">Business Profile</h3>
+              <p class="text-gray-600 mt-2">Created on June 1, 2025</p>
+              <div class="mt-4 flex items-center">
+                <span class="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full">Active</span>
+                <span class="ml-auto text-sm text-gray-500">5 automations</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="main-dashboard" class="hidden">
+      <!-- Header -->
+      <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center">
+              <h1 class="text-2xl font-bold gradient-text">FLAN</h1>
+              <div class="ml-6 relative">
+                <select id="workspace-selector" class="bg-gray-100 text-gray-700 rounded-lg py-2 px-4 appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="workspace-1">Personal Instagram</option>
+                  <option value="workspace-2">Business Profile</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+                  <i class="fas fa-chevron-down text-gray-500"></i>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div id="instagram-connection-status" class="hidden mr-4 bg-green-100 text-green-800 text-xs py-1 px-3 rounded-full">
+                <i class="fab fa-instagram mr-1"></i> Connected
+              </div>
+              
+              <div id="no-instagram-connection" class="mr-4">
+                <button onclick="showInstagramConnectModal()" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-sm py-2 px-4 rounded-lg transition-colors">
+                  <i class="fab fa-instagram mr-1"></i> Connect Instagram
+                </button>
+              </div>
+              
+              <div class="dropdown">
+                <button class="flex items-center focus:outline-none">
+                  <img class="h-8 w-8 rounded-full" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="Profile">
+                  <span class="ml-2 text-gray-700">John Doe</span>
+                  <i class="fas fa-chevron-down ml-2 text-gray-500 text-xs"></i>
+                </button>
+                
+                <div class="dropdown-content bg-white mt-2 rounded-lg shadow-lg p-2">
+                  <a href="javascript:void(0)" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">
+                    <i class="fas fa-user mr-2"></i> Profile
+                  </a>
+                  <a href="javascript:void(0)" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">
+                    <i class="fas fa-cog mr-2"></i> Settings
+                  </a>
+                  <hr class="my-1 border-gray-200">
+                  <a href="javascript:void(0)" onclick="logout()" class="block px-4 py-2 text-red-600 hover:bg-gray-100 rounded">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white w-64 border-r border-gray-200 hidden md:block">
+          <nav class="p-6 space-y-2">
+            <a href="javascript:void(0)" onclick="showTab('dashboard')" class="nav-link flex items-center p-3 text-gray-700 hover:bg-indigo-50 rounded-lg hover:text-indigo-600 transition-colors">
+              <i class="fas fa-chart-line w-6"></i>
+              <span>Dashboard</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showTab('automation')" class="nav-link flex items-center p-3 text-gray-700 hover:bg-indigo-50 rounded-lg hover:text-indigo-600 transition-colors">
+              <i class="fas fa-robot w-6"></i>
+              <span>Automations</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showTab('templates')" class="nav-link flex items-center p-3 text-gray-700 hover:bg-indigo-50 rounded-lg hover:text-indigo-600 transition-colors">
+              <i class="fas fa-envelope w-6"></i>
+              <span>Templates</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showTab('analytics')" class="nav-link flex items-center p-3 text-gray-700 hover:bg-indigo-50 rounded-lg hover:text-indigo-600 transition-colors">
+              <i class="fas fa-chart-pie w-6"></i>
+              <span>Analytics</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showTab('subscription')" class="nav-link flex items-center p-3 text-gray-700 hover:bg-indigo-50 rounded-lg hover:text-indigo-600 transition-colors">
+              <i class="fas fa-credit-card w-6"></i>
+              <span>Subscription</span>
+            </a>
+          </nav>
+        </aside>
+        
+        <!-- Mobile navigation -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex md:hidden z-10">
+          <a href="javascript:void(0)" onclick="showTab('dashboard')" class="flex-1 flex flex-col items-center py-2 text-indigo-600">
+            <i class="fas fa-chart-line"></i>
+            <span class="text-xs mt-1">Dashboard</span>
+          </a>
+          <a href="javascript:void(0)" onclick="showTab('automation')" class="flex-1 flex flex-col items-center py-2 text-gray-600">
+            <i class="fas fa-robot"></i>
+            <span class="text-xs mt-1">Automations</span>
+          </a>
+          <a href="javascript:void(0)" onclick="showTab('templates')" class="flex-1 flex flex-col items-center py-2 text-gray-600">
+            <i class="fas fa-envelope"></i>
+            <span class="text-xs mt-1">Templates</span>
+          </a>
+          <a href="javascript:void(0)" onclick="showTab('analytics')" class="flex-1 flex flex-col items-center py-2 text-gray-600">
+            <i class="fas fa-chart-pie"></i>
+            <span class="text-xs mt-1">Analytics</span>
+          </a>
+          <a href="javascript:void(0)" onclick="showTab('subscription')" class="flex-1 flex flex-col items-center py-2 text-gray-600">
+            <i class="fas fa-credit-card"></i>
+            <span class="text-xs mt-1">Plans</span>
+          </a>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 pb-20 md:pb-6">
+          <!-- Dashboard Tab -->
+          <div id="dashboard-tab" class="dashboard-tab">
+            <div class="mb-8">
+              <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+              <p class="text-gray-600">Overview of your automation activities</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                  <div class="rounded-full bg-indigo-100 p-3">
+                    <i class="fas fa-paper-plane text-indigo-600"></i>
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-gray-500 text-sm">DMs Sent</h3>
+                    <p class="text-2xl font-bold">124</p>
+                  </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600">
+                  <i class="fas fa-arrow-up"></i> 12% from last week
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                  <div class="rounded-full bg-green-100 p-3">
+                    <i class="fas fa-eye text-green-600"></i>
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-gray-500 text-sm">Open Rate</h3>
+                    <p class="text-2xl font-bold">84%</p>
+                  </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600">
+                  <i class="fas fa-arrow-up"></i> 5% from last week
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                  <div class="rounded-full bg-blue-100 p-3">
+                    <i class="fas fa-reply text-blue-600"></i>
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-gray-500 text-sm">Reply Rate</h3>
+                    <p class="text-2xl font-bold">42%</p>
+                  </div>
+                </div>
+                <div class="mt-4 text-xs text-red-600">
+                  <i class="fas fa-arrow-down"></i> 3% from last week
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                  <div class="rounded-full bg-purple-100 p-3">
+                    <i class="fas fa-code-branch text-purple-600"></i>
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-gray-500 text-sm">Active Rules</h3>
+                    <p class="text-2xl font-bold">7</p>
+                  </div>
+                </div>
+                <div class="mt-4 text-xs text-gray-500">
+                  <i class="fas fa-equals"></i> No change
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">DM Activity (Last 30 Days)</h3>
+              <div class="chart-container">
+                <canvas id="activity-chart"></canvas>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Automations</h3>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Rule</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Triggered</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">Price Inquiry Response</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-500">5 minutes ago</div>
+                        </td>
+                        <td class="py-3">
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Sent
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">New Product Inquiry</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-500">22 minutes ago</div>
+                        </td>
+                        <td class="py-3">
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Sent
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">Availability Check</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-500">1 hour ago</div>
+                        </td>
+                        <td class="py-3">
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Sent
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Performing Rules</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-sm font-medium text-gray-700">Price Inquiry Response</span>
+                      <span class="text-sm text-gray-600">92%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-green-500 h-2 rounded-full" style="width: 92%"></div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-sm font-medium text-gray-700">Sale Announcement</span>
+                      <span class="text-sm text-gray-600">78%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-green-500 h-2 rounded-full" style="width: 78%"></div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-sm font-medium text-gray-700">New Collection</span>
+                      <span class="text-sm text-gray-600">65%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-green-500 h-2 rounded-full" style="width: 65%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Automation Rules Tab -->
+          <div id="automation-tab" class="dashboard-tab hidden">
+            <div class="mb-8 flex justify-between items-center">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-800">Automation Rules</h2>
+                <p class="text-gray-600">Create and manage your Instagram DM automation rules</p>
+              </div>
+              
+              <button onclick="showCreateRuleForm()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg flex items-center hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i> New Rule
+              </button>
+            </div>
+            
+            <!-- Create/Edit Rule Form -->
+            <div id="rule-form" class="bg-white rounded-xl shadow-sm p-6 mb-8 hidden">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold text-gray-800">Create New Automation Rule</h3>
+                <button onclick="hideCreateRuleForm()" class="text-gray-400 hover:text-gray-600">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <form>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="rule-name">
+                      Rule Name
+                    </label>
+                    <input id="rule-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="E.g. Price Inquiry Response">
+                  </div>
+                  
+                  <div>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="trigger-type">
+                      Trigger Type
+                    </label>
+                    <select id="trigger-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="post">Instagram Post</option>
+                      <option value="reel">Instagram Reel</option>
+                      <option value="story">Instagram Story</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="content-url">
+                      Content URL or ID
+                    </label>
+                    <input id="content-url" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Paste Instagram post/reel URL or ID">
+                  </div>
+                  
+                  <div>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="trigger-keywords">
+                      Trigger Keywords
+                    </label>
+                    <input id="trigger-keywords" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="E.g. price, cost, how much (comma separated)">
+                  </div>
+                </div>
+                
+                <div class="mt-6">
+                  <label class="block text-gray-700 text-sm font-semibold mb-2" for="message-template">
+                    Message Template
+                  </label>
+                  <select id="message-template" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select a template or create new</option>
+                    <option value="template-1">Price Information</option>
+                    <option value="template-2">Product Details</option>
+                    <option value="template-3">Thank You Message</option>
+                    <option value="new">+ Create New Template</option>
+                  </select>
+                </div>
+                
+                <div id="new-template-editor" class="mt-4 hidden">
+                  <label class="block text-gray-700 text-sm font-semibold mb-2" for="template-name">
+                    Template Name
+                  </label>
+                  <input id="template-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4" placeholder="E.g. Price Information">
+                  
+                  <label class="block text-gray-700 text-sm font-semibold mb-2" for="template-content">
+                    Message Content
+                  </label>
+                  <div class="border border-gray-300 rounded-md p-2 mb-2">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                      <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded" onclick="insertVariable('{{user_name}}')">@Username</button>
+                      <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded" onclick="insertVariable('{{first_name}}')">First Name</button>
+                      <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded" onclick="insertVariable('{{post_link}}')">Post Link</button>
+                    </div>
+                    <textarea id="template-content" class="w-full px-3 py-2 focus:outline-none" rows="5" placeholder="Hi {{user_name}}! Thanks for your interest..."></textarea>
+                  </div>
+                </div>
+                
+                <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-200">
+                  <div class="flex items-center">
+                    <label class="toggle-switch mr-3">
+                      <input type="checkbox" id="rule-active" checked>
+                      <span class="slider"></span>
+                    </label>
+                    <span class="text-sm font-medium text-gray-700">Activate rule immediately</span>
+                  </div>
+                  
+                  <div class="flex gap-3">
+                    <button type="button" onclick="hideCreateRuleForm()" class="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50">
+                      Cancel
+                    </button>
+                    <button type="button" onclick="saveRule()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+                      Save Rule
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            <!-- Rule Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="rule-list">
+              <div class="rule-card bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+                  <div class="flex justify-between">
+                    <h3 class="font-semibold text-indigo-900">Price Inquiry Response</h3>
+                    <div class="flex items-center">
+                      <span class="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full mr-2">Active</span>
+                      <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-6">
+                  <div class="flex flex-wrap gap-4 mb-4">
+                    <div class="bg-gray-100 rounded-lg px-3 py-1 text-sm text-gray-700">
+                      <i class="far fa-image mr-1"></i> Post
+                    </div>
+                    <div class="bg-gray-100 rounded-lg px-3 py-1 text-sm text-gray-700">
+                      <i class="fas fa-tag mr-1"></i> Keywords: price, cost, how much
+                    </div>
+                  </div>
+                  
+                  <div class="mt-4 border-t border-gray-200 pt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Reply Template:</h4>
+                    <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                      Hi {{user_name}}! Thanks for your interest. Our product prices range from $25-$75. Check out our website for more details...
+                    </p>
+                  </div>
+                  
+                  <div class="flex justify-between mt-6">
+                    <div class="text-gray-500 text-sm">
+                      <i class="fas fa-paper-plane mr-1"></i> 28 DMs sent
+                    </div>
+                    
+                    <div class="flex gap-2">
+                      <button class="text-gray-500 hover:text-indigo-700">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="text-gray-500 hover:text-red-600">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="rule-card bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+                  <div class="flex justify-between">
+                    <h3 class="font-semibold text-indigo-900">New Collection Alert</h3>
+                    <div class="flex items-center">
+                      <span class="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full mr-2">Active</span>
+                      <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-6">
+                  <div class="flex flex-wrap gap-4 mb-4">
+                    <div class="bg-gray-100 rounded-lg px-3 py-1 text-sm text-gray-700">
+                      <i class="fas fa-film mr-1"></i> Reel
+                    </div>
+                    <div class="bg-gray-100 rounded-lg px-3 py-1 text-sm text-gray-700">
+                      <i class="fas fa-tag mr-1"></i> Keywords: collection, new, when
+                    </div>
+                  </div>
+                  
+                  <div class="mt-4 border-t border-gray-200 pt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Reply Template:</h4>
+                    <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                      Hello {{user_name}}! Our new collection drops next week! Would you like me to notify you when it's available?
+                    </p>
+                  </div>
+                  
+                  <div class="flex justify-between mt-6">
+                    <div class="text-gray-500 text-sm">
+                      <i class="fas fa-paper-plane mr-1"></i> 42 DMs sent
+                    </div>
+                    
+                    <div class="flex gap-2">
+                      <button class="text-gray-500 hover:text-indigo-700">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="text-gray-500 hover:text-red-600">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Templates Tab -->
+          <div id="templates-tab" class="dashboard-tab hidden">
+            <div class="mb-8 flex justify-between items-center">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-800">Message Templates</h2>
+                <p class="text-gray-600">Create and manage your DM templates</p>
+              </div>
+              
+              <button onclick="showCreateTemplateModal()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg flex items-center hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i> New Template
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div class="bg-white rounded-xl shadow-sm">
+                <div class="p-6 border-b border-gray-100">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-gray-800">Product Inquiry Response</h3>
+                    <div class="dropdown">
+                      <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-content bg-white mt-1 rounded-lg shadow-lg p-1 right-0 z-20 w-40">
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                          <i class="fas fa-edit mr-2"></i> Edit
+                        </a>
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                          <i class="fas fa-clone mr-2"></i> Duplicate
+                        </a>
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded">
+                          <i class="fas fa-trash mr-2"></i> Delete
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-6">
+                  <p class="text-gray-600 text-sm">
+                    Hi {{user_name}}! Thanks for your interest in our products. Our prices range from $25-$75 depending on the style. Would you like me to send you our catalog?
+                  </p>
+                  
+                  <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <span class="text-gray-500 text-xs">Used in 3 rules</span>
+                    <button class="text-indigo-600 hover:text-indigo-800 text-sm">
+                      <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm">
+                <div class="p-6 border-b border-gray-100">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-gray-800">Follow-up Message</h3>
+                    <div class="dropdown">
+                      <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-content bg-white mt-1 rounded-lg shadow-lg p-1 right-0 z-20 w-40">
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                          <i class="fas fa-edit mr-2"></i> Edit
+                        </a>
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                          <i class="fas fa-clone mr-2"></i> Duplicate
+                        </a>
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded">
+                          <i class="fas fa-trash mr-2"></i> Delete
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-6">
+                  <p class="text-gray-600 text-sm">
+                    Hello {{user_name}}! Just following up on our conversation about {{post_link}}. Let me know if you have any questions or if you'd like to make a purchase!
+                  </p>
+                  
+                  <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <span class="text-gray-500 text-xs">Used in 1 rule</span>
+                    <button class="text-indigo-600 hover:text-indigo-800 text-sm">
+                      <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm">
+                <div class="p-6 border-b border-gray-100">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-gray-800">New Collection Alert</h3>
+                    <div class="dropdown">
+                      <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-content bg-white mt-1 rounded-lg shadow-lg p-1 right-0 z-20 w-40">
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                          <i class="fas fa-edit mr-2"></i> Edit
+                        </a>
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                          <i class="fas fa-clone mr-2"></i> Duplicate
+                        </a>
+                        <a href="javascript:void(0)" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded">
+                          <i class="fas fa-trash mr-2"></i> Delete
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-6">
+                  <p class="text-gray-600 text-sm">
+                    Hi {{first_name}}! I noticed you were interested in our latest collection. We're launching new styles next week! Would you like to be notified when they're available?
+                  </p>
+                  
+                  <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <span class="text-gray-500 text-xs">Used in 2 rules</span>
+                    <button class="text-indigo-600 hover:text-indigo-800 text-sm">
+                      <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Analytics Tab -->
+          <div id="analytics-tab" class="dashboard-tab hidden">
+            <div class="mb-8">
+              <h2 class="text-2xl font-bold text-gray-800">Analytics & Insights</h2>
+              <p class="text-gray-600">Track the performance of your Instagram DM automations</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold text-gray-800">Performance Overview</h3>
+                
+                <div>
+                  <select class="bg-gray-100 text-gray-700 rounded-lg py-2 px-4 appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h4 class="text-gray-500 text-sm mb-1">DMs Sent</h4>
+                  <p class="text-3xl font-bold">542</p>
+                  <div class="mt-2 text-xs text-green-600">
+                    <i class="fas fa-arrow-up"></i> 12% from last month
+                  </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h4 class="text-gray-500 text-sm mb-1">Open Rate</h4>
+                  <p class="text-3xl font-bold">87%</p>
+                  <div class="mt-2 text-xs text-green-600">
+                    <i class="fas fa-arrow-up"></i> 5% from last month
+                  </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h4 class="text-gray-500 text-sm mb-1">Response Rate</h4>
+                  <p class="text-3xl font-bold">48%</p>
+                  <div class="mt-2 text-xs text-red-600">
+                    <i class="fas fa-arrow-down"></i> 3% from last month
+                  </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h4 class="text-gray-500 text-sm mb-1">Conversion Rate</h4>
+                  <p class="text-3xl font-bold">12%</p>
+                  <div class="mt-2 text-xs text-green-600">
+                    <i class="fas fa-arrow-up"></i> 2% from last month
+                  </div>
+                </div>
+              </div>
+              
+              <div class="chart-container">
+                <canvas id="analytics-chart"></canvas>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Performing Content</h3>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Content</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Type</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">DMs</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Open Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">Summer Collection Reel</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-500">Reel</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">124</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">94%</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">Product Showcase</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-500">Post</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">98</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">89%</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">New Arrivals Story</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-500">Story</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">76</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">82%</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Performing Messages</h3>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Template</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Sent</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3">Response Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">Price Inquiry Response</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">217</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">62%</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">New Collection Alert</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">164</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">48%</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-3">
+                          <div class="text-sm font-medium text-gray-900">Follow-up Message</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">87</div>
+                        </td>
+                        <td class="py-3">
+                          <div class="text-sm text-gray-900">34%</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Subscription Tab -->
+          <div id="subscription-tab" class="dashboard-tab hidden">
+            <div class="mb-8">
+              <h2 class="text-2xl font-bold text-gray-800">Subscription Plan</h2>
+              <p class="text-gray-600">Manage your FLAN subscription and billing</p>
+            </div>
+            
+            <div class="bg-indigo-50 rounded-xl p-6 mb-8">
+              <div class="flex flex-col md:flex-row justify-between">
+                <div>
+                  <span class="text-xs font-medium text-indigo-600 bg-indigo-100 py-1 px-2 rounded-full">Current Plan</span>
+                  <h3 class="text-xl font-bold text-gray-800 mt-2">Free Plan</h3>
+                  <p class="text-gray-600 mt-1">You are currently on the Free plan</p>
+                </div>
+                
+                <div class="mt-4 md:mt-0">
+                  <div class="text-gray-600 mb-2">
+                    <span class="font-medium">Usage this month</span>
+                  </div>
+                  <div class="flex gap-x-6 gap-y-2 flex-wrap">
+                    <div>
+                      <div class="flex items-center">
+                        <i class="fas fa-paper-plane text-indigo-600 mr-2"></i>
+                        <span>42 / 50 DMs</span>
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 84%"></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div class="flex items-center">
+                        <i class="fas fa-robot text-indigo-600 mr-2"></i>
+                        <span>2 / 3 Rules</span>
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 66%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-6 md:mt-0">
+                  <button onclick="showUpgradeModal()" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors">
+                    Upgrade Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Available Plans</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="p-6 bg-gray-50">
+                  <h3 class="text-xl font-bold text-gray-800">Free</h3>
+                  <div class="mt-4">
+                    <span class="text-3xl font-bold">₹0</span>
+                    <span class="text-gray-500">/month</span>
+                  </div>
+                  <p class="text-gray-600 mt-2">Perfect for getting started</p>
+                </div>
+                
+                <div class="p-6">
+                  <ul class="space-y-3">
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">50 DMs per month</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">3 Automation rules</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Basic analytics</span>
+                    </li>
+                    <li class="flex items-center text-gray-400">
+                      <i class="fas fa-times mr-2"></i>
+                      <span>Message templates</span>
+                    </li>
+                    <li class="flex items-center text-gray-400">
+                      <i class="fas fa-times mr-2"></i>
+                      <span>Multiple workspaces</span>
+                    </li>
+                  </ul>
+                  
+                  <div class="mt-6">
+                    <button class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                      Current Plan
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm overflow-hidden relative">
+                <div class="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  Popular
+                </div>
+                
+                <div class="p-6 gradient-bg">
+                  <h3 class="text-xl font-bold text-white">Pro</h3>
+                  <div class="mt-4">
+                    <span class="text-3xl font-bold text-white">₹999</span>
+                    <span class="text-indigo-100">/month</span>
+                  </div>
+                  <p class="text-indigo-100 mt-2">For growing creators</p>
+                </div>
+                
+                <div class="p-6">
+                  <ul class="space-y-3">
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">500 DMs per month</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Unlimited automation rules</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Advanced analytics</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">10 message templates</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">2 workspaces</span>
+                    </li>
+                  </ul>
+                  
+                  <div class="mt-6">
+                    <button onclick="selectPlan('pro')" class="w-full gradient-bg py-2 px-4 text-white rounded-lg hover:opacity-90 font-medium">
+                      Choose Plan
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="p-6 bg-gray-800">
+                  <h3 class="text-xl font-bold text-white">Business</h3>
+                  <div class="mt-4">
+                    <span class="text-3xl font-bold text-white">₹2499</span>
+                    <span class="text-gray-300">/month</span>
+                  </div>
+                  <p class="text-gray-300 mt-2">For serious businesses</p>
+                </div>
+                
+                <div class="p-6">
+                  <ul class="space-y-3">
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Unlimited DMs</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Unlimited automation rules</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Premium analytics</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">Unlimited message templates</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fas fa-check text-green-500 mr-2"></i>
+                      <span class="text-gray-700">5 workspaces</span>
+                    </li>
+                  </ul>
+                  
+                  <div class="mt-6">
+                    <button onclick="selectPlan('business')" class="w-full bg-gray-800 py-2 px-4 text-white rounded-lg hover:bg-gray-700 font-medium">
+                      Choose Plan
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modals -->
+  <!-- Create Workspace Modal -->
+  <div id="create-workspace-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">Create New Workspace</h3>
+          <button onclick="hideCreateWorkspaceModal()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <form>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="workspace-name">
+              Workspace Name
+            </label>
+            <input id="workspace-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="E.g. My Brand">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="workspace-desc">
+              Description (optional)
+            </label>
+            <textarea id="workspace-desc" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="2" placeholder="Brief description of this workspace"></textarea>
+          </div>
+          
+          <div class="flex justify-end mt-6">
+            <button type="button" onclick="hideCreateWorkspaceModal()" class="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="button" onclick="createWorkspace()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+              Create Workspace
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Instagram Connect Modal -->
+  <div id="instagram-connect-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">Connect Instagram</h3>
+          <button onclick="hideInstagramConnectModal()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="text-center p-4">
+          <div class="rounded-full bg-indigo-100 p-4 inline-block mb-4">
+            <i class="fab fa-instagram text-4xl text-indigo-600"></i>
+          </div>
+          
+          <h4 class="text-lg font-medium text-gray-800 mb-2">Connect your Instagram Business Account</h4>
+          <p class="text-gray-600 mb-6">FLAN needs access to your Instagram business account to send automated DMs.</p>
+          
+          <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+            <h5 class="font-medium text-gray-800 mb-2">Required permissions:</h5>
+            <ul class="text-sm text-gray-600 space-y-1">
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                <span>Read comments on your posts, reels and stories</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                <span>Send messages to users who comment on your content</span>
+              </li>
+            </ul>
+          </div>
+          
+          <button onclick="connectInstagram()" class="w-full gradient-bg text-white py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+            <i class="fab fa-instagram mr-2"></i> Connect Instagram
+          </button>
+          
+          <p class="text-xs text-gray-500 mt-4">
+            By connecting, you authorize FLAN to access your Instagram business account via the Meta API. You can revoke access anytime.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Create Template Modal -->
+  <div id="create-template-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">Create Message Template</h3>
+          <button onclick="hideCreateTemplateModal()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <form>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="new-template-name">
+              Template Name
+            </label>
+            <input id="new-template-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="E.g. Welcome Message">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="new-template-content">
+              Message Content
+            </label>
+            
+            <div class="border border-gray-300 rounded-md p-2 mb-2">
+              <div class="flex flex-wrap gap-2 mb-2">
+                <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded" onclick="insertVariable('{{user_name}}')">@Username</button>
+                <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded" onclick="insertVariable('{{first_name}}')">First Name</button>
+                <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 py-1 px-2 rounded" onclick="insertVariable('{{post_link}}')">Post Link</button>
+              </div>
+              <textarea id="new-template-content" class="w-full px-3 py-2 focus:outline-none" rows="5" placeholder="Hi {{user_name}}! Thanks for your interest..."></textarea>
+            </div>
+            
+            <p class="text-xs text-gray-500">
+              Use variables like {{user_name}} to personalize your messages. They'll be replaced with actual values.
+            </p>
+          </div>
+          
+          <div class="flex justify-end mt-6">
+            <button type="button" onclick="hideCreateTemplateModal()" class="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="button" onclick="saveTemplate()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+              Save Template
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Upgrade Plan Modal -->
+  <div id="upgrade-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">Upgrade to <span id="selected-plan-name">Pro</span></h3>
+          <button onclick="hideUpgradeModal()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="mb-6 bg-indigo-50 p-4 rounded-lg">
+          <div class="flex justify-between items-center">
+            <div>
+              <h4 class="font-semibold text-gray-800"><span id="plan-name-display">Pro</span> Plan</h4>
+              <p class="text-gray-600">Monthly subscription</p>
+            </div>
+            <div class="text-xl font-bold" id="plan-price-display">₹999</div>
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <h4 class="text-gray-800 font-medium mb-2">Payment Method</h4>
+          <div class="space-y-3">
+            <div class="border border-gray-200 rounded-lg p-3 flex items-center">
+              <input type="radio" name="payment-method" id="payment-card" checked class="mr-3">
+              <label for="payment-card" class="flex items-center">
+                <i class="fas fa-credit-card text-gray-600 mr-2"></i>
+                <span>Credit/Debit Card</span>
+              </label>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-3 flex items-center">
+              <input type="radio" name="payment-method" id="payment-upi" class="mr-3">
+              <label for="payment-upi" class="flex items-center">
+                <i class="fas fa-mobile-alt text-gray-600 mr-2"></i>
+                <span>Paytm UPI</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div id="card-payment-form">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="card-number">
+              Card Number
+            </label>
+            <input id="card-number" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="1234 5678 9012 3456">
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-gray-700 text-sm font-semibold mb-2" for="expiry-date">
+                Expiry Date
+              </label>
+              <input id="expiry-date" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="MM/YY">
+            </div>
+            
+            <div>
+              <label class="block text-gray-700 text-sm font-semibold mb-2" for="cvv">
+                CVV
+              </label>
+              <input id="cvv" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="123">
+            </div>
+          </div>
+        </div>
+        
+        <div id="upi-payment-form" class="hidden">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-semibold mb-2" for="upi-id">
+              UPI ID
+            </label>
+            <input id="upi-id" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="yourname@paytm">
+          </div>
+        </div>
+        
+        <div class="flex justify-end mt-6">
+          <button type="button" onclick="hideUpgradeModal()" class="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button type="button" onclick="processPayment()" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+            Pay Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script id="app-script">
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB-EmFPGmJa7MmFvQYejnOM-qx3Pqqx7uU",
+      authDomain: "flan-a0c78.firebaseapp.com",
+      projectId: "flan-a0c78",
+      storageBucket: "flan-a0c78.firebasestorage.app",
+      messagingSenderId: "307513930245",
+      appId: "1:307513930245:web:aa6fca31388b28280be26c",
+      measurementId: "G-WRTYDQKC50"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // DOM Elements
+    const app = document.getElementById('app');
+    const loadingScreen = document.getElementById('loading-screen');
+    const authScreen = document.getElementById('auth-screen');
+    const workspaceScreen = document.getElementById('workspace-screen');
+    const mainDashboard = document.getElementById('main-dashboard');
+    const createWorkspaceModal = document.getElementById('create-workspace-modal');
+    const instagramConnectModal = document.getElementById('instagram-connect-modal');
+    const createTemplateModal = document.getElementById('create-template-modal');
+    const upgradeModal = document.getElementById('upgrade-modal');
+    const ruleForm = document.getElementById('rule-form');
+    
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        authScreen.classList.remove('hidden');
+        initCharts();
+      }, 1500);
+    });
+    
+    // Auth Functions
+    function showAuthTab(tab) {
+      const loginTab = document.getElementById('login-tab');
+      const signupTab = document.getElementById('signup-tab');
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      
+      if (tab === 'login') {
+        loginTab.classList.add('text-indigo-600');
+        loginTab.classList.remove('text-gray-500');
+        signupTab.classList.add('text-gray-500');
+        signupTab.classList.remove('text-indigo-600');
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+      } else {
+        loginTab.classList.add('text-gray-500');
+        loginTab.classList.remove('text-indigo-600');
+        signupTab.classList.add('text-indigo-600');
+        signupTab.classList.remove('text-gray-500');
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+      }
+    }
+    
+    function login() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      
+      if (!email || !password) {
+        alert('Please enter email and password');
+        return;
+      }
+      
+      loadingScreen.classList.remove('hidden');
+      
+      // Simulate login
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        authScreen.classList.add('hidden');
+        workspaceScreen.classList.remove('hidden');
+      }, 1000);
+    }
+    
+    function signup() {
+      const name = document.getElementById('signup-name').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      const confirm = document.getElementById('signup-confirm').value;
+      
+      if (!name || !email || !password) {
+        alert('Please fill all required fields');
+        return;
+      }
+      
+      if (password !== confirm) {
+        alert('Passwords do not match');
+        return;
+      }
+      
+      loadingScreen.classList.remove('hidden');
+      
+      // Simulate signup
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        authScreen.classList.add('hidden');
+        workspaceScreen.classList.remove('hidden');
+      }, 1000);
+    }
+    
+    function logout() {
+      loadingScreen.classList.remove('hidden');
+      
+      // Simulate logout
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        mainDashboard.classList.add('hidden');
+        authScreen.classList.remove('hidden');
+      }, 1000);
+    }
+    
+    // Workspace Functions
+    function showCreateWorkspaceModal() {
+      createWorkspaceModal.classList.remove('hidden');
+    }
+    
+    function hideCreateWorkspaceModal() {
+      createWorkspaceModal.classList.add('hidden');
+    }
+    
+    function createWorkspace() {
+      const name = document.getElementById('workspace-name').value;
+      
+      if (!name) {
+        alert('Please enter a workspace name');
+        return;
+      }
+      
+      loadingScreen.classList.remove('hidden');
+      hideCreateWorkspaceModal();
+      
+      // Simulate workspace creation
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        workspaceScreen.classList.add('hidden');
+        mainDashboard.classList.remove('hidden');
+        showTab('dashboard');
+      }, 1000);
+    }
+    
+    function selectWorkspace(workspaceId) {
+      loadingScreen.classList.remove('hidden');
+      
+      // Simulate workspace selection
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        workspaceScreen.classList.add('hidden');
+        mainDashboard.classList.remove('hidden');
+        showTab('dashboard');
+      }, 1000);
+    }
+    
+    // Instagram Connection
+    function showInstagramConnectModal() {
+      instagramConnectModal.classList.remove('hidden');
+    }
+    
+    function hideInstagramConnectModal() {
+      instagramConnectModal.classList.add('hidden');
+    }
+    
+    function connectInstagram() {
+      loadingScreen.classList.remove('hidden');
+      hideInstagramConnectModal();
+      
+      // Simulate Instagram connection
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        document.getElementById('no-instagram-connection').classList.add('hidden');
+        document.getElementById('instagram-connection-status').classList.remove('hidden');
+      }, 1500);
+    }
+    
+    // Dashboard Tab Control
+    function showTab(tabName) {
+      const tabs = document.querySelectorAll('.dashboard-tab');
+      const navLinks = document.querySelectorAll('.nav-link');
+      
+      tabs.forEach(tab => tab.classList.add('hidden'));
+      navLinks.forEach(link => {
+        link.classList.remove('text-indigo-600');
+        link.classList.remove('bg-indigo-50');
+        link.classList.add('text-gray-700');
+      });
+      
+      document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+      
+      const activeLink = document.querySelector(`.nav-link[onclick="showTab('${tabName}')"]`);
+      if (activeLink) {
+        activeLink.classList.remove('text-gray-700');
+        activeLink.classList.add('text-indigo-600');
+        activeLink.classList.add('bg-indigo-50');
+      }
+      
+      // For mobile navigation
+      const mobileNavLinks = document.querySelectorAll('.fixed.bottom-0 a');
+      mobileNavLinks.forEach(link => {
+        link.classList.remove('text-indigo-600');
+        link.classList.add('text-gray-600');
+      });
+      
+      const activeMobileLink = document.querySelector(`.fixed.bottom-0 a[onclick="showTab('${tabName}')"]`);
+      if (activeMobileLink) {
+        activeMobileLink.classList.remove('text-gray-600');
+        activeMobileLink.classList.add('text-indigo-600');
+      }
+    }
+    
+    // Rule Form Functions
+    function showCreateRuleForm() {
+      ruleForm.classList.remove('hidden');
+    }
+    
+    function hideCreateRuleForm() {
+      ruleForm.classList.add('hidden');
+    }
+    
+    function saveRule() {
+      const ruleName = document.getElementById('rule-name').value;
+      
+      if (!ruleName) {
+        alert('Please enter a rule name');
+        return;
+      }
+      
+      loadingScreen.classList.remove('hidden');
+      
+      // Simulate saving rule
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        hideCreateRuleForm();
+        alert('Rule saved successfully!');
+      }, 1000);
+    }
+    
+    // Template Functions
+    function showCreateTemplateModal() {
+      createTemplateModal.classList.remove('hidden');
+    }
+    
+    function hideCreateTemplateModal() {
+      createTemplateModal.classList.add('hidden');
+    }
+    
+    function saveTemplate() {
+      const templateName = document.getElementById('new-template-name').value;
+      const templateContent = document.getElementById('new-template-content').value;
+      
+      if (!templateName || !templateContent) {
+        alert('Please fill all required fields');
+        return;
+      }
+      
+      loadingScreen.classList.remove('hidden');
+      
+      // Simulate saving template
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        hideCreateTemplateModal();
+        alert('Template saved successfully!');
+      }, 1000);
+    }
+    
+    function insertVariable(variable) {
+      const templateContent = document.getElementById('template-content') || document.getElementById('new-template-content');
+      
+      if (templateContent) {
+        const startPos = templateContent.selectionStart;
+        const endPos = templateContent.selectionEnd;
+        const currentValue = templateContent.value;
+        
+        templateContent.value = currentValue.substring(0, startPos) + variable + currentValue.substring(endPos);
+        templateContent.focus();
+        templateContent.selectionStart = startPos + variable.length;
+        templateContent.selectionEnd = startPos + variable.length;
+      }
+    }
+    
+    // Subscription Plan Functions
+    function showUpgradeModal() {
+      upgradeModal.classList.remove('hidden');
+    }
+    
+    function hideUpgradeModal() {
+      upgradeModal.classList.add('hidden');
+    }
+    
+    function selectPlan(plan) {
+      let planName = 'Pro';
+      let planPrice = '₹999';
+      
+      if (plan === 'business') {
+        planName = 'Business';
+        planPrice = '₹2499';
+      }
+      
+      document.getElementById('selected-plan-name').textContent = planName;
+      document.getElementById('plan-name-display').textContent = planName;
+      document.getElementById('plan-price-display').textContent = planPrice;
+      
+      showUpgradeModal();
+    }
+    
+    function processPayment() {
+      loadingScreen.classList.remove('hidden');
+      hideUpgradeModal();
+      
+      // Simulate payment processing
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        alert('Payment successful! Your plan has been upgraded.');
+      }, 1500);
+    }
+    
+    // Initialize Charts
+    function initCharts() {
+      // Sample data for charts
+      const activityData = {
+        labels: ['May 1', 'May 5', 'May 10', 'May 15', 'May 20', 'May 25', 'May 30'],
+        datasets: [
+          {
+            label: 'DMs Sent',
+            data: [12, 19, 27, 23, 42, 38, 51],
+            borderColor: 'rgb(99, 102, 241)',
+            backgroundColor: 'rgba(99, 102, 241, 0.5)',
+            tension: 0.4
+          },
+          {
+            label: 'Responses',
+            data: [5, 12, 18, 14, 22, 19, 25],
+            borderColor: 'rgb(236, 72, 153)',
+            backgroundColor: 'rgba(236, 72, 153, 0.5)',
+            tension: 0.4
+          }
+        ]
+      };
+      
+      const analyticsData = {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [
+          {
+            label: 'Open Rate',
+            type: 'line',
+            data: [82, 84, 85, 87],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            yAxisID: 'y-axis-2',
+            tension: 0.4
+          },
+          {
+            label: 'DMs Sent',
+            type: 'bar',
+            data: [120, 140, 132, 150],
+            backgroundColor: 'rgba(99, 102, 241, 0.7)',
+            yAxisID: 'y-axis-1'
+          },
+          {
+            label: 'Responses',
+            type: 'bar',
+            data: [48, 62, 58, 72],
+            backgroundColor: 'rgba(236, 72, 153, 0.7)',
+            yAxisID: 'y-axis-1'
+          }
+        ]
+      };
+      
+      // Activity Chart
+      const activityChart = document.getElementById('activity-chart');
+      if (activityChart) {
+        new Chart(activityChart, {
+          type: 'line',
+          data: activityData,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+      
+      // Analytics Chart
+      const analyticsChart = document.getElementById('analytics-chart');
+      if (analyticsChart) {
+        new Chart(analyticsChart, {
+          type: 'bar',
+          data: analyticsData,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+              },
+            },
+            scales: {
+              'y-axis-1': {
+                type: 'linear',
+                position: 'left',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Count'
+                }
+              },
+              'y-axis-2': {
+                type: 'linear',
+                position: 'right',
+                beginAtZero: true,
+                max: 100,
+                title: {
+                  display: true,
+                  text: 'Percentage'
+                },
+                grid: {
+                  drawOnChartArea: false
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+    
+    // Template Editor Toggle
+    document.getElementById('message-template').addEventListener('change', function() {
+      const newTemplateEditor = document.getElementById('new-template-editor');
+      if (this.value === 'new') {
+        newTemplateEditor.classList.remove('hidden');
+      } else {
+        newTemplateEditor.classList.add('hidden');
+      }
+    });
+    
+    // Payment Method Toggle
+    const paymentCardRadio = document.getElementById('payment-card');
+    const paymentUpiRadio = document.getElementById('payment-upi');
+    const cardForm = document.getElementById('card-payment-form');
+    const upiForm = document.getElementById('upi-payment-form');
+    
+    paymentCardRadio.addEventListener('change', function() {
+      if (this.checked) {
+        cardForm.classList.remove('hidden');
+        upiForm.classList.add('hidden');
+      }
+    });
+    
+    paymentUpiRadio.addEventListener('change', function() {
+      if (this.checked) {
+        cardForm.classList.add('hidden');
+        upiForm.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
